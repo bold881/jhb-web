@@ -56,6 +56,22 @@ export const constantRoutes = [
   },
 
   {
+    path: '/competitor',
+    component: Layout,
+    redirect: '/competitor/typein',
+    name: 'Competitor',
+    meta: { title: '竞品指标录入', icon: 'form' },
+    children: [
+      {
+        path: 'typein',
+        name: 'typein',
+        component: () => import('@/views/table/typein'),
+        meta: { title: '竞品指标录入', icon: 'form' }
+      }
+    ]
+  },
+
+  {
     path: '/example',
     component: Layout,
     redirect: '/example/table',
@@ -76,7 +92,6 @@ export const constantRoutes = [
       }
     ]
   },
-
   {
     path: '/form',
     component: Layout,
@@ -145,17 +160,6 @@ export const constantRoutes = [
         component: () => import('@/views/nested/menu2/index'),
         name: 'Menu2',
         meta: { title: 'menu2' }
-      }
-    ]
-  },
-
-  {
-    path: 'external-link',
-    component: Layout,
-    children: [
-      {
-        path: 'https://panjiachen.github.io/vue-element-admin-site/#/',
-        meta: { title: 'External Link', icon: 'link' }
       }
     ]
   },

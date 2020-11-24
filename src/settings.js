@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: 'Vue Admin Template',
+  title: '性能指标带宽计算',
 
   /**
    * @type {boolean} true | false
