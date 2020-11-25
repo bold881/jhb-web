@@ -7,3 +7,11 @@ export function getList(params) {
     params
   })
 }
+
+export function getUniqueIdxNames(params) {
+  return request({
+    url: '/api/uniqueCarIdxNames',
+    method: 'get',
+    params
+  })
+}

@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-select v-model="value" filterable allow-create default-first-option placeholder="指标选择" size="medium">
-      <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+      <el-option v-for="item in options" :key="item" :label="item" :value="item" />
     </el-select>
     <el-divider />
     <el-table v-loading="listLoading" :data="list" element-loading-text="Loading" border fit highlight-current-row>
@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import { getList } from '@/api/table'
+import { getUniqueIdxNames } from '@/api/table'
 
 export default {
   filters: {
@@ -42,21 +42,12 @@ export default {
     return {
       list: null,
       listLoading: false,
-      options: [{
-        value: 'HTML',
-        label: 'HTML'
-      }, {
-        value: 'CSS',
-        label: 'CSS'
-      }, {
-        value: 'JavaScript',
-        label: 'JavaScript'
-      }],
+      options: [],
       value: []
     }
   },
   created() {
-    // this.fetchData()
+    this.fetchCarIdxNames()
   },
   methods: {
     fetchData() {
@@ -64,6 +55,15 @@ export default {
       getList().then(response => {
         this.list = response.data.items
         this.listLoading = false
+      })
+    },
+    fetchCarIdxNames() {
+      getUniqueIdxNames().then(response => {
+        if (response.data) {
+          this.options = response.data
+        } else {
+          this.options = []
+        }
       })
     }
   }
