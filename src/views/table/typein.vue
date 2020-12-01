@@ -33,7 +33,7 @@
       <el-input v-model="addIdxDlgData.carServiceName" placeholder="竞品名称" class="row-idx" />
       <el-input v-model="addIdxDlgData.carIdxValue" placeholder="车型值" class="row-idx" />
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" size="mini" @click="handleAddIdxDlgClose()">新增并继续</el-button>
+        <el-button type="primary" size="mini" @click="onAddIdxAndContinue()">新增并继续</el-button>
         <el-button size="mini" @click="addIdxDlgVisible = false">取 消</el-button>
       </span>
     </el-dialog>
@@ -79,9 +79,11 @@ export default {
     },
 
     // 指标添加窗口关闭之前
-    handleAddIdxDlgClose() {
-      this.addIdxDlgVisible = false
+    onAddIdxAndContinue() {
       console.log('指标窗口关闭')
+      if (this.addIdxDlgData.carIdxName.length < 1 || this.addIdxDlgData.carServiceName.length < 1 || this.addIdxDlgData.carIdxValue.length < 1) {
+        return this.$message({ message: '请输入！', type: 'warning' })
+      }
     },
 
     fetchData() {
