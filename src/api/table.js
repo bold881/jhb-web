@@ -15,3 +15,11 @@ export function getUniqueIdxNames(params) {
     params
   })
 }
+
+export function addPerformanceIdx(data) {
+  return request({
+    url: '/api/addPerformanceIdx',
+    method: 'post',
+    data
+  })
+}

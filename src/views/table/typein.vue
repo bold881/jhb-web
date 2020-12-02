@@ -1,14 +1,10 @@
 <template>
   <div class="app-container">
     <el-row>
-      <el-col :span="3">
-        <el-select v-model="carIdxSelected" filterable allow-create default-first-option placeholder="指标选择" size="medium">
-          <el-option v-for="item in options" :key="item" :label="item" :value="item" />
-        </el-select>
-      </el-col>
-      <el-col :span="4">
-        <el-button type="primary" size="small" @click="onAddIdxBtnClick()">新增指标</el-button>
-      </el-col>
+      <el-select v-model="carIdxSelected" filterable allow-create default-first-option placeholder="指标选择" size="medium">
+        <el-option v-for="item in options" :key="item" :label="item" :value="item" />
+      </el-select>
+      <el-button class="margin-btn" type="primary" size="small" @click="onAddIdxBtnClick()">新增指标</el-button>
     </el-row>
     <el-divider />
     <el-table v-loading="listLoading" :data="list" element-loading-text="Loading" border fit highlight-current-row>
@@ -41,7 +37,7 @@
 </template>
 
 <script>
-import { getUniqueIdxNames } from '@/api/table'
+import { getUniqueIdxNames, addPerformanceIdx } from '@/api/table'
 
 export default {
   filters: {
@@ -84,6 +80,10 @@ export default {
       if (this.addIdxDlgData.carIdxName.length < 1 || this.addIdxDlgData.carServiceName.length < 1 || this.addIdxDlgData.carIdxValue.length < 1) {
         return this.$message({ message: '请输入！', type: 'warning' })
       }
+      addPerformanceIdx(this.addIdxDlgData).then(value => {
+        this.addIdxDlgData.carServiceName = ''
+        this.addIdxDlgData.carIdxValue = ''
+      })
     },
 
     fetchData() {
@@ -113,5 +113,8 @@ export default {
 <style scoped>
 .row-idx {
   margin-block: 6px;
+}
+.margin-btn {
+  margin-left: 6px;
 }
 </style>
