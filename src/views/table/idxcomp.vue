@@ -1,8 +1,11 @@
 <template>
   <div class="app-container">
     <el-row>
-      <el-select v-model="carIdxSelected" filterable allow-create default-first-option placeholder="指标选择" size="medium" @change="onIdxChange">
+      <el-select v-model="carIdxSelected" default-first-option placeholder="指标选择" size="medium" change="onIdxChange">
         <el-option v-for="item in options" :key="item" :label="item" :value="item" />
+      </el-select>
+      <el-select v-model="extreTypeSelected" default-first-option placeholder="极值类型" size="medium">
+        <el-option v-for="item in extremumType" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
       <el-button class="margin-btn" type="primary" size="small" @click="onAddIdxBtnClick()">新增指标</el-button>
     </el-row>
@@ -69,7 +72,18 @@ export default {
         carIdxName: '',
         carServiceName: '',
         carIdxValue: ''
-      }
+      },
+      extremumType: [
+        {
+          'label': '极小型',
+          'value': 0
+        },
+        {
+          'label': '极大型',
+          'value': 1
+        }
+      ],
+      extreTypeSelected: null
     }
   },
   created() {
@@ -121,6 +135,7 @@ export default {
         this.listLoading = false
       })
     },
+    // 指标数据删除
     handleDelete(index, row) {
       const body = {
         'id': row.id,
@@ -130,17 +145,13 @@ export default {
         this.setPerformanceList(ret.data)
       })
     },
+
+    // 指标数据小数位特殊处理
     setPerformanceList(data) {
       data.forEach(element => {
         element.carIdxValue /= 1000
       })
       this.idxList = data
-    },
-    // 指标选择变化
-    onIdxChange(idxName) {
-      console.log(idxName)
-      this.listLoading = true
-      this.getPerformances(this.carIdxSelected)
     }
   }
 }

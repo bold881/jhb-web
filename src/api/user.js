@@ -9,7 +9,7 @@ export function login(data) {
 }
 
 export function getInfo(token) {
-  console.log("token: " + token)
+  console.log('token: ' + token)
   return request({
     url: '/user/info',
     method: 'get',
