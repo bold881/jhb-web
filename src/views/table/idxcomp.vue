@@ -1,13 +1,18 @@
 <template>
   <div class="app-container">
     <el-row>
-      <el-select v-model="carIdxSelected" default-first-option placeholder="指标选择" size="medium" change="onIdxChange">
+      <el-select v-model="carIdxSelected" default-first-option placeholder="指标选择" size="medium" @change="onIdxChange">
         <el-option v-for="item in options" :key="item" :label="item" :value="item" />
       </el-select>
-      <el-select v-model="extreTypeSelected" default-first-option placeholder="极值类型" size="medium">
+      <el-select v-model="extreTypeSelected" default-first-option placeholder="极值类型" size="medium" class="margin-btn">
         <el-option v-for="item in extremumType" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
-      <el-button class="margin-btn" type="primary" size="small" @click="onAddIdxBtnClick()">新增指标</el-button>
+      <el-button class="margin-btn" type="primary" size="small" @click="doCalc()">执行</el-button>
+    </el-row>
+    <el-row class="row-idx">
+      <el-select v-model="carServiceSelected" default-first-option placeholder="计算车型选择" size="medium" @change="onCmpServiceChange">
+        <el-option v-for="item in carServiceList" :key="item.carServiceName" :label="item.carServiceName" :value="item.carServiceName" />
+      </el-select>
     </el-row>
     <el-divider />
     <el-table v-loading="listLoading" :data="idxList" element-loading-text="Loading" border fit highlight-current-row>
@@ -32,23 +37,53 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="指标新增" :visible.sync="addIdxDlgVisible" width="30%">
-      <el-input v-model="addIdxDlgData.carIdxName" placeholder="指标名称" class="row-idx" />
-      <el-input v-model="addIdxDlgData.carServiceName" placeholder="竞品名称" class="row-idx" />
-      <el-input v-model="addIdxDlgData.carIdxValue" placeholder="车型值" class="row-idx" />
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" size="mini" @click="onAddIdxAndContinue()">新增并继续</el-button>
-        <el-button size="mini" @click="addIdxDlgVisible = false">取 消</el-button>
-      </span>
-    </el-dialog>
+    <el-divider />
+    <p>策略L：</p>
+    <el-table :data="lresult" style="width: 100%">
+      <el-table-column prop="idxName" label="性能指标" width="180" />
+      <el-table-column prop="strategy" label="策略" width="180" />
+      <el-table-column prop="band" label="带宽" />
+      <el-table-column prop="recommend" label="推荐目标" />
+      <el-table-column prop="devTarget" label="开发车目标" />
+    </el-table>
+    <div id="lchart" style="width: 600px;height:400px;" />
+    <p>策略A：</p>
+    <el-table :data="aresult" style="width: 100%">
+      <el-table-column prop="idxName" label="性能指标" width="180" />
+      <el-table-column prop="strategy" label="策略" width="180" />
+      <el-table-column prop="band" label="带宽" />
+      <el-table-column prop="recommend" label="推荐目标" />
+      <el-table-column prop="devTarget" label="开发车目标" />
+    </el-table>
+    <div id="achart" style="width: 600px;height:400px;" />
+    <p>策略C：</p>
+    <el-table :data="cresult" style="width: 100%">
+      <el-table-column prop="idxName" label="性能指标" width="180" />
+      <el-table-column prop="strategy" label="策略" width="180" />
+      <el-table-column prop="band" label="带宽" />
+      <el-table-column prop="recommend" label="推荐目标" />
+      <el-table-column prop="devTarget" label="开发车目标" />
+    </el-table>
+    <div id="cchart" style="width: 600px;height:400px;" />
+    <p>策略U：</p>
+    <el-table :data="uresult" style="width: 100%">
+      <el-table-column prop="idxName" label="性能指标" width="180" />
+      <el-table-column prop="strategy" label="策略" width="180" />
+      <el-table-column prop="band" label="带宽" />
+      <el-table-column prop="recommend" label="推荐目标" />
+      <el-table-column prop="devTarget" label="开发车目标" />
+    </el-table>
+    <div id="uchart" style="width: 600px;height:400px;" />
   </div>
 </template>
 
 <script>
 import { getUniqueIdxNames,
-  addPerformanceIdx,
   getPerformanceByIdx,
-  deleteById } from '@/api/table'
+  nullWarning } from '@/api/table'
+import { std } from 'mathjs'
+
+import norminv from 'norminv'
 
 export default {
   filters: {
@@ -68,6 +103,8 @@ export default {
       listLoading: false,
       options: [],
       carIdxSelected: '',
+      carServiceList: [],
+      carServiceSelected: null,
       addIdxDlgData: {
         carIdxName: '',
         carServiceName: '',
@@ -83,7 +120,15 @@ export default {
           'value': 1
         }
       ],
-      extreTypeSelected: null
+      extreTypeSelected: null,
+      // L策略结果
+      lresult: [],
+      // A策略结果
+      aresult: [],
+      // C策略结果
+      cresult: [],
+      // U策略结果
+      uresult: []
     }
   },
   created() {
@@ -97,15 +142,85 @@ export default {
     },
 
     // 指标添加窗口关闭之前
-    onAddIdxAndContinue() {
-      if (this.addIdxDlgData.carIdxName.length < 1 || this.addIdxDlgData.carServiceName.length < 1 || this.addIdxDlgData.carIdxValue.length < 1) {
-        return this.$message({ message: '请输入！', type: 'warning' })
+    doCalc() {
+      // 获取极值类型
+      console.log(this.extreTypeSelected)
+      if (!nullWarning(this, this.extreTypeSelected, '请选择极值类型')) {
+        return
       }
-      addPerformanceIdx(this.addIdxDlgData).then(value => {
-        this.setPerformanceList(value.data)
-        this.addIdxDlgData.carServiceName = ''
-        this.addIdxDlgData.carIdxValue = ''
+
+      if (!nullWarning(this, this.idxList, '竞品车型不能为空')) {
+        return
+      }
+
+      // 计算算数平均值
+      let total = 0
+      const values = []
+      this.idxList.forEach(e => {
+        total += e.carIdxValue
+        values.push(e.carIdxValue)
       })
+      const avgValue = total / this.idxList.length
+      console.log('平均数:' + avgValue)
+
+      // 计算标准差
+      const stdValue = std(values)
+      console.log('标准差:' + stdValue)
+
+      // 指定平均值和标准偏差的正态累积分布函数的反函数
+      let lvalue = this.norminvCalc(avgValue, stdValue, this.extreTypeSelected, 0.1)
+      let avalue = this.norminvCalc(avgValue, stdValue, this.extreTypeSelected, 0.3)
+      let cvalue = this.norminvCalc(avgValue, stdValue, this.extreTypeSelected, 0.7)
+
+      lvalue = parseFloat(lvalue.toFixed(2))
+      avalue = parseFloat(avalue.toFixed(2))
+      cvalue = parseFloat(cvalue.toFixed(2))
+      const lamid = ((lvalue + avalue) / 2).toFixed(2)
+      const acmid = ((avalue + cvalue) / 2).toFixed(2)
+
+      this.lresult.push({
+        'idxName': this.carIdxSelected,
+        'strategy': 'L',
+        'band': '≤ ' + lvalue,
+        'recommend': lvalue,
+        'devTarget': null
+      })
+      this.aresult.push({
+        'idxName': this.carIdxSelected,
+        'strategy': 'A',
+        'band': lvalue + ' ~ ' + avalue,
+        'recommend': lamid,
+        'devTarget': null
+      })
+      this.cresult.push({
+        'idxName': this.carIdxSelected,
+        'strategy': 'C',
+        'band': avalue + ' ~ ' + cvalue,
+        'recommend': acmid,
+        'devTarget': null
+      })
+      this.uresult.push({
+        'idxName': this.carIdxSelected,
+        'strategy': 'U',
+        'band': '> ' + cvalue,
+        'recommend': cvalue,
+        'devTarget': null
+      })
+
+      this.drawChart('lchart', lvalue)
+      this.drawChart('achart', lamid)
+      this.drawChart('cchart', acmid)
+      this.drawChart('uchart', cvalue)
+    },
+
+    norminvCalc(avgValue, stdValue, extreType, typeValue) {
+      if (extreType === 0) {
+        // 极小型计算
+        return norminv(typeValue, avgValue, stdValue)
+      } else {
+        // 极大型计算
+        return -norminv(typeValue, -avgValue, stdValue)
+      }
     },
 
     // 查询指标名称
@@ -137,13 +252,10 @@ export default {
     },
     // 指标数据删除
     handleDelete(index, row) {
-      const body = {
-        'id': row.id,
-        'idxName': row.carIdxName
-      }
-      deleteById(body).then(ret => {
-        this.setPerformanceList(ret.data)
+      const filtered = this.idxList.filter(e => {
+        return e.id !== row.id
       })
+      this.idxList = filtered
     },
 
     // 指标数据小数位特殊处理
@@ -151,7 +263,80 @@ export default {
       data.forEach(element => {
         element.carIdxValue /= 1000
       })
-      this.idxList = data
+      this.carServiceList = data
+    },
+
+    // 当选择的性能指标发生变化
+    onIdxChange(idxName) {
+      console.log(idxName)
+      this.listLoading = true
+      this.idxList = null
+      this.carServiceSelected = null
+      this.getPerformances(this.carIdxSelected)
+    },
+
+    // 当选择车系变化时
+    onCmpServiceChange(item) {
+      if (this.idxList == null) {
+        this.idxList = []
+      }
+      const foundItem = this.carServiceList.find(c => {
+        return c.carServiceName === item
+      })
+      this.idxList.push(foundItem)
+    },
+    drawChart(chartId, recommend) {
+      var echarts = require('echarts')
+      // 基于准备好的dom，初始化echarts实例
+      const myChart = echarts.init(document.getElementById(chartId))
+      const xAxisData = []
+      const serviceData = []
+      xAxisData.push('推荐目标')
+      serviceData.push(recommend)
+      this.idxList.forEach(e => {
+        xAxisData.push(e.carServiceName)
+        serviceData.push(e.carIdxValue)
+      })
+      // 指定图表的配置项和数据
+      const option = {
+        color: ['#FFC000', '#3398DB'],
+        title: {
+          text: ''
+        },
+        tooltip: {},
+        legend: {
+          data: ['性能值']
+        },
+        xAxis: {
+          axisLabel: {
+            interval: 0
+          },
+          data: xAxisData
+        },
+        yAxis: {},
+        series: [
+          {
+            name: '性能值',
+            type: 'bar',
+            label: {
+              show: true,
+              position: 'top'
+            },
+            itemStyle: {
+              normal: {
+                // 定制显示（按顺序）
+                color: function(params) {
+                  const colorList = ['#C33531', '#EFE42A', '#64BD3D', '#EE9201', '#29AAE3', '#B74AE5', '#0AAF9F', '#E89589', '#16A085', '#4A235A', '#C39BD3 ', '#F9E79F', '#BA4A00', '#ECF0F1', '#616A6B', '#EAF2F8', '#4A235A', '#3498DB']
+                  return colorList[params.dataIndex]
+                }
+              }
+            },
+            data: serviceData
+          }
+        ]
+      }
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option)
     }
   }
 }

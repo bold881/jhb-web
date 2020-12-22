@@ -40,3 +40,15 @@ export function deleteById(data) {
     data
   })
 }
+
+export function nullWarning(_this, data, msg) {
+  if (data == null || data.length < 1) {
+    _this.$message({
+      message: msg,
+      type: 'warning'
+    })
+    return false
+  } else {
+    return true
+  }
+}
