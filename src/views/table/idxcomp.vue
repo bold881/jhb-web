@@ -7,6 +7,9 @@
       <el-select v-model="extreTypeSelected" default-first-option placeholder="极值类型" size="medium" class="margin-btn" @change="onExtremChange">
         <el-option v-for="item in extremumType" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
+      <el-select v-model="strategySelected" default-first-option placeholder="策略" size="medium" class="margin-btn" @change="onStrageChange">
+        <el-option v-for="item in strategies" :key="item" :label="item" :value="item" />
+      </el-select>
       <el-button class="margin-btn" type="primary" size="small" @click="doCalc()">执行</el-button>
     </el-row>
     <el-row class="row-idx">
@@ -15,7 +18,7 @@
       </el-select>
     </el-row>
     <el-divider />
-    <el-table border v-loading="listLoading" :data="idxList" element-loading-text="Loading" border fit highlight-current-row>
+    <el-table v-loading="listLoading" border :data="idxList" element-loading-text="Loading" fit highlight-current-row>
       <el-table-column align="center" label="编号" width="95">
         <template slot-scope="scope">
           {{ scope.$index }}
@@ -38,60 +41,76 @@
       </el-table-column>
     </el-table>
     <el-divider />
-    <p>策略L：</p>
-    <el-row>
+    <el-row :style="{'display': (strategySelected === 'L' ? 'block' : 'none')}">
+      <p>策略L：</p>
       <el-col :span="12">
         <el-table border :data="lresult">
-          <el-table-column prop="idxName" label="性能指标" width="180" />
-          <el-table-column prop="strategy" label="策略" width="180" />
-          <el-table-column prop="band" label="带宽" />
-          <el-table-column prop="recommend" label="推荐目标" />
-          <el-table-column prop="devTarget" label="开发车目标" />
+          <el-table-column prop="idxName" label="性能指标" align="center" />
+          <el-table-column prop="strategy" label="策略" align="center" />
+          <el-table-column prop="band" label="带宽" align="center" />
+          <el-table-column prop="recommend" label="推荐目标" align="center" />
+          <el-table-column prop="devTarget" label="开发车目标" align="center">
+            <template scope="scope">
+              <el-input v-model="scope.row.devTarget" size="small" class="textarea" placeholder="" @change="onDevTargetChange(scope.$index, scope.row)" />
+            </template>
+          </el-table-column>
         </el-table>
       </el-col>
       <el-col :span="12">
         <div id="lchart" style="width: 600px;height:250px;" />
       </el-col>
     </el-row>
-    <p>策略A：</p>
-    <el-row>
+    <el-row :style="{'display': (strategySelected === 'A' ? 'block' : 'none')}">
+      <p>策略A：</p>
       <el-col :span="12">
         <el-table border :data="aresult">
-          <el-table-column prop="idxName" label="性能指标" width="180" />
-          <el-table-column prop="strategy" label="策略" width="180" />
-          <el-table-column prop="band" label="带宽" />
-          <el-table-column prop="recommend" label="推荐目标" />
-          <el-table-column prop="devTarget" label="开发车目标" />
+          <el-table-column prop="idxName" label="性能指标" align="center" />
+          <el-table-column prop="strategy" label="策略" align="center" />
+          <el-table-column prop="band" label="带宽" align="center" />
+          <el-table-column prop="recommend" label="推荐目标" align="center" />
+          <el-table-column prop="devTarget" label="开发车目标" align="center">
+            <template scope="scope">
+              <el-input v-model="scope.row.devTarget" size="small" class="textarea" placeholder="" @change="onDevTargetChange(scope.$index, scope.row)" />
+            </template>
+          </el-table-column>
         </el-table>
       </el-col>
       <el-col :span="12">
         <div id="achart" style="width: 600px;height:250px;" />
       </el-col>
     </el-row>
-    <p>策略C：</p>
-    <el-row>
+    <el-row :style="{'display': (strategySelected === 'C' ? 'block' : 'none')}">
+      <p>策略C：</p>
       <el-col :span="12">
         <el-table border :data="cresult">
-          <el-table-column prop="idxName" label="性能指标" width="180" />
-          <el-table-column prop="strategy" label="策略" width="180" />
-          <el-table-column prop="band" label="带宽" />
-          <el-table-column prop="recommend" label="推荐目标" />
-          <el-table-column prop="devTarget" label="开发车目标" />
+          <el-table-column prop="idxName" label="性能指标" align="center" />
+          <el-table-column prop="strategy" label="策略" align="center" />
+          <el-table-column prop="band" label="带宽" align="center" />
+          <el-table-column prop="recommend" label="推荐目标" align="center" />
+          <el-table-column prop="devTarget" label="开发车目标" align="center">
+            <template scope="scope">
+              <el-input v-model="scope.row.devTarget" size="small" class="textarea" placeholder="" @change="onDevTargetChange(scope.$index, scope.row)" />
+            </template>
+          </el-table-column>
         </el-table>
       </el-col>
       <el-col :span="12">
         <div id="cchart" style="width: 600px;height:250px;" />
       </el-col>
     </el-row>
-    <p>策略U：</p>
-    <el-row>
+    <el-row :style="{'display': (strategySelected === 'U' ? 'block' : 'none')}">
+      <p>策略U：</p>
       <el-col :span="12">
         <el-table border :data="uresult">
-          <el-table-column prop="idxName" label="性能指标" width="180" />
-          <el-table-column prop="strategy" label="策略" width="180" />
-          <el-table-column prop="band" label="带宽" />
-          <el-table-column prop="recommend" label="推荐目标" />
-          <el-table-column prop="devTarget" label="开发车目标" />
+          <el-table-column prop="idxName" label="性能指标" align="center" />
+          <el-table-column prop="strategy" label="策略" align="center" />
+          <el-table-column prop="band" label="带宽" align="center" />
+          <el-table-column prop="recommend" label="推荐目标" align="center" />
+          <el-table-column prop="devTarget" label="开发车目标" align="center">
+            <template scope="scope">
+              <el-input v-model="scope.row.devTarget" size="small" class="textarea" placeholder="" @change="onDevTargetChange(scope.$index, scope.row)" />
+            </template>
+          </el-table-column>
         </el-table>
       </el-col>
       <el-col :span="12">
@@ -144,6 +163,9 @@ export default {
           'value': 1
         }
       ],
+      strategies: [
+        'L', 'A', 'C', 'U'
+      ],
       extreTypeSelected: null,
       // L策略结果
       lresult: [],
@@ -152,7 +174,9 @@ export default {
       // C策略结果
       cresult: [],
       // U策略结果
-      uresult: []
+      uresult: [],
+      // 选中的策略
+      strategySelected: ''
     }
   },
   created() {
@@ -167,6 +191,7 @@ export default {
 
     // 指标添加窗口关闭之前
     doCalc() {
+      this.onExtremChange()
       // 获取极值类型
       console.log(this.extreTypeSelected)
       if (!nullWarning(this, this.extreTypeSelected, '请选择极值类型')) {
@@ -231,10 +256,10 @@ export default {
         'devTarget': null
       })
 
-      this.drawChart('lchart', lvalue)
-      this.drawChart('achart', lamid)
-      this.drawChart('cchart', acmid)
-      this.drawChart('uchart', cvalue)
+      this.drawChart('lchart', this.lresult[0].devTarget)
+      this.drawChart('achart', this.aresult[0].devTarget)
+      this.drawChart('cchart', this.cresult[0].devTarget)
+      this.drawChart('uchart', this.uresult[0].devTarget)
     },
 
     norminvCalc(avgValue, stdValue, extreType, typeValue) {
@@ -315,7 +340,7 @@ export default {
       const myChart = echarts.init(document.getElementById(chartId))
       const xAxisData = []
       const serviceData = []
-      xAxisData.push('推荐目标')
+      xAxisData.push('开发车目标')
       serviceData.push(recommend)
       this.idxList.forEach(e => {
         xAxisData.push(e.carServiceName)
@@ -377,6 +402,20 @@ export default {
       this.cresult = []
       // U策略结果
       this.uresult = []
+    },
+    onDevTargetChange(idx, row) {
+      if (row.strategy === 'L') {
+        this.drawChart('lchart', this.lresult[0].devTarget)
+      }
+      if (row.strategy === 'A') {
+        this.drawChart('achart', this.aresult[0].devTarget)
+      }
+      if (row.strategy === 'C') {
+        this.drawChart('cchart', this.cresult[0].devTarget)
+      }
+      if (row.strategy === 'U') {
+        this.drawChart('uchart', this.uresult[0].devTarget)
+      }
     }
   }
 }
@@ -387,5 +426,8 @@ export default {
 }
 .margin-btn {
   margin-left: 6px;
+}
+.textarea >>>.el-input__inner{
+  border: none;
 }
 </style>
