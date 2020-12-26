@@ -18,10 +18,11 @@
       </el-select>
     </el-row>
     <el-divider />
+    <el-button class="margin-btn" type="primary" size="small" @click="doTableExport">导出</el-button>
     <el-row :style="{'display': (strategySelected === 'L' ? 'block' : 'none')}">
       <p>策略L：</p>
       <el-col :span="12">
-        <el-table border :data="lresult">
+        <el-table ref="Lreport-table" :data="lresult" border>
           <el-table-column prop="idxName" label="性能指标" align="center" />
           <el-table-column prop="strategy" label="策略" align="center" />
           <el-table-column prop="band" label="带宽" align="center" />
@@ -29,6 +30,7 @@
           <el-table-column prop="devTarget" label="开发车目标" align="center">
             <template scope="scope">
               <el-input v-model="scope.row.devTarget" size="small" class="textarea" placeholder="" @change="onDevTargetChange(scope.$index, scope.row)" />
+              <span style="display:none;">{{scope.row.devTarget}}</span>
             </template>
           </el-table-column>
         </el-table>
@@ -40,7 +42,7 @@
     <el-row :style="{'display': (strategySelected === 'A' ? 'block' : 'none')}">
       <p>策略A：</p>
       <el-col :span="12">
-        <el-table border :data="aresult">
+        <el-table ref="Areport-table" :data="aresult" border>
           <el-table-column prop="idxName" label="性能指标" align="center" />
           <el-table-column prop="strategy" label="策略" align="center" />
           <el-table-column prop="band" label="带宽" align="center" />
@@ -48,6 +50,7 @@
           <el-table-column prop="devTarget" label="开发车目标" align="center">
             <template scope="scope">
               <el-input v-model="scope.row.devTarget" size="small" class="textarea" placeholder="" @change="onDevTargetChange(scope.$index, scope.row)" />
+              <span style="display:none;">{{scope.row.devTarget}}</span>
             </template>
           </el-table-column>
         </el-table>
@@ -59,7 +62,7 @@
     <el-row :style="{'display': (strategySelected === 'C' ? 'block' : 'none')}">
       <p>策略C：</p>
       <el-col :span="12">
-        <el-table border :data="cresult">
+        <el-table ref="Creport-table" :data="cresult" border>
           <el-table-column prop="idxName" label="性能指标" align="center" />
           <el-table-column prop="strategy" label="策略" align="center" />
           <el-table-column prop="band" label="带宽" align="center" />
@@ -67,6 +70,7 @@
           <el-table-column prop="devTarget" label="开发车目标" align="center">
             <template scope="scope">
               <el-input v-model="scope.row.devTarget" size="small" class="textarea" placeholder="" @change="onDevTargetChange(scope.$index, scope.row)" />
+              <span style="display:none;">{{scope.row.devTarget}}</span>
             </template>
           </el-table-column>
         </el-table>
@@ -78,7 +82,7 @@
     <el-row :style="{'display': (strategySelected === 'U' ? 'block' : 'none')}">
       <p>策略U：</p>
       <el-col :span="12">
-        <el-table border :data="uresult">
+        <el-table ref="Ureport-table" :data="uresult" border>
           <el-table-column prop="idxName" label="性能指标" align="center" />
           <el-table-column prop="strategy" label="策略" align="center" />
           <el-table-column prop="band" label="带宽" align="center" />
@@ -86,6 +90,7 @@
           <el-table-column prop="devTarget" label="开发车目标" align="center">
             <template scope="scope">
               <el-input v-model="scope.row.devTarget" size="small" class="textarea" placeholder="" @change="onDevTargetChange(scope.$index, scope.row)" />
+              <span style="display:none;">{{scope.row.devTarget}}</span>
             </template>
           </el-table-column>
         </el-table>
@@ -97,7 +102,7 @@
     <el-divider />
     <el-row>
       <el-col :span="14">
-        <el-table border :data="carServiceList" ref="multipleTable" highlight-current-row @selection-change="onCmpServiceChange">
+        <el-table ref="multipleTable" border :data="carServiceList" highlight-current-row @selection-change="onCmpServiceChange">
           <el-table-column type="selection" />
           <el-table-column align="center" label="编号">
             <template slot-scope="scope">
@@ -139,8 +144,9 @@ import { getUniqueIdxNames,
   getPerformanceByIdx,
   nullWarning } from '@/api/table'
 import { std } from 'mathjs'
-
 import norminv from 'norminv'
+import FileSaver from 'file-saver'
+import XLSX from 'xlsx'
 
 export default {
   filters: {
@@ -442,6 +448,26 @@ export default {
       } else {
         this.$refs.multipleTable.clearSelection()
       }
+    },
+    exportExcel(excelName, refName) {
+      try {
+        const $e = this.$refs[`${refName}`].$el
+        let $table = $e.querySelector('.el-table__fixed')
+        if (!$table) {
+          $table = $e
+        }
+        // 为了返回单元格原始字符串，设置{ raw: true }
+        const wb = XLSX.utils.table_to_book($table, { raw: true })
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'array' })
+        FileSaver.saveAs(new Blob([wbout], { type: 'application/octet-stream' }), `${excelName}.xlsx`)
+      } catch (e) {
+        if (typeof console !== 'undefined') {
+          console.error(e)
+        }
+      }
+    },
+    doTableExport() {
+      this.exportExcel(this.strategySelected, this.strategySelected + 'report-table')
     }
   }
 }
