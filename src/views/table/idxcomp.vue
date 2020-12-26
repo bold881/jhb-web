@@ -7,39 +7,16 @@
       <el-select v-model="extreTypeSelected" default-first-option placeholder="极值类型" size="medium" class="margin-btn" @change="onExtremChange">
         <el-option v-for="item in extremumType" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
-      <el-select v-model="strategySelected" default-first-option placeholder="策略" size="medium" class="margin-btn" @change="onStrageChange">
+      <el-select v-model="strategySelected" default-first-option placeholder="策略" size="medium" class="margin-btn">
         <el-option v-for="item in strategies" :key="item" :label="item" :value="item" />
       </el-select>
       <el-button class="margin-btn" type="primary" size="small" @click="doCalc()">执行</el-button>
     </el-row>
     <el-row class="row-idx">
-      <el-select v-model="carServiceSelected" default-first-option placeholder="计算车型选择" size="medium" @change="onCmpServiceChange">
+      <el-select v-model="carServiceSelected" filterable default-first-option placeholder="计算车型选择" size="medium" @change="onSingleSelChange">
         <el-option v-for="item in carServiceList" :key="item.carServiceName" :label="item.carServiceName" :value="item.carServiceName" />
       </el-select>
     </el-row>
-    <el-divider />
-    <el-table v-loading="listLoading" border :data="idxList" element-loading-text="Loading" fit highlight-current-row>
-      <el-table-column align="center" label="编号" width="95">
-        <template slot-scope="scope">
-          {{ scope.$index }}
-        </template>
-      </el-table-column>
-      <el-table-column label="竞品名称" align="center">
-        <template slot-scope="scope">
-          {{ scope.row.carServiceName }}
-        </template>
-      </el-table-column>
-      <el-table-column label="车型值" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.carIdxValue }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center">
-        <template slot-scope="scope">
-          <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
     <el-divider />
     <el-row :style="{'display': (strategySelected === 'L' ? 'block' : 'none')}">
       <p>策略L：</p>
@@ -115,6 +92,43 @@
       </el-col>
       <el-col :span="12">
         <div id="uchart" style="width: 600px;height:250px;" />
+      </el-col>
+    </el-row>
+    <el-divider />
+    <el-row>
+      <el-col :span="14">
+        <el-table border :data="carServiceList" ref="multipleTable" highlight-current-row @selection-change="onCmpServiceChange">
+          <el-table-column type="selection" />
+          <el-table-column align="center" label="编号">
+            <template slot-scope="scope">
+              {{ scope.$index }}
+            </template>
+          </el-table-column>
+          <el-table-column label="竞品名称" align="center">
+            <template slot-scope="scope">
+              {{ scope.row.carServiceName }}
+            </template>
+          </el-table-column>
+          <el-table-column label="车型值" align="center">
+            <template slot-scope="scope">
+              <span>{{ scope.row.carIdxValue }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-col>
+      <el-col :span="10">
+        <el-table v-loading="listLoading" border :data="idxList" element-loading-text="Loading" fit highlight-current-row>
+          <el-table-column align="center" label="编号" width="95">
+            <template slot-scope="scope">
+              {{ scope.$index }}
+            </template>
+          </el-table-column>
+          <el-table-column label="竞品名称" align="center">
+            <template slot-scope="scope">
+              {{ scope.row.carServiceName }}
+            </template>
+          </el-table-column>
+        </el-table>
       </el-col>
     </el-row>
   </div>
@@ -326,13 +340,7 @@ export default {
 
     // 当选择车系变化时
     onCmpServiceChange(item) {
-      if (this.idxList == null) {
-        this.idxList = []
-      }
-      const foundItem = this.carServiceList.find(c => {
-        return c.carServiceName === item
-      })
-      this.idxList.push(foundItem)
+      this.idxList = item
     },
     drawChart(chartId, recommend) {
       var echarts = require('echarts')
@@ -348,9 +356,12 @@ export default {
       })
       // 指定图表的配置项和数据
       const option = {
-        color: ['#3398DB'],
-        title: {
-          text: ''
+        toolbox: {
+          feature: {
+            saveAsImage: {
+              title: '保存为图片'
+            }
+          }
         },
         tooltip: {},
         legend: {
@@ -415,6 +426,21 @@ export default {
       }
       if (row.strategy === 'U') {
         this.drawChart('uchart', this.uresult[0].devTarget)
+      }
+    },
+    onSingleSelChange(item) {
+      const foundItem = this.carServiceList.find(c => {
+        return c.carServiceName === item
+      })
+      this.toggleSelection([foundItem])
+    },
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row)
+        })
+      } else {
+        this.$refs.multipleTable.clearSelection()
       }
     }
   }
