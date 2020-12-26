@@ -4,7 +4,7 @@
       <el-select v-model="carIdxSelected" default-first-option placeholder="指标选择" size="medium" @change="onIdxChange">
         <el-option v-for="item in options" :key="item" :label="item" :value="item" />
       </el-select>
-      <el-select v-model="extreTypeSelected" default-first-option placeholder="极值类型" size="medium" class="margin-btn">
+      <el-select v-model="extreTypeSelected" default-first-option placeholder="极值类型" size="medium" class="margin-btn" @change="onExtremChange">
         <el-option v-for="item in extremumType" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
       <el-button class="margin-btn" type="primary" size="small" @click="doCalc()">执行</el-button>
@@ -15,7 +15,7 @@
       </el-select>
     </el-row>
     <el-divider />
-    <el-table v-loading="listLoading" :data="idxList" element-loading-text="Loading" border fit highlight-current-row>
+    <el-table border v-loading="listLoading" :data="idxList" element-loading-text="Loading" border fit highlight-current-row>
       <el-table-column align="center" label="编号" width="95">
         <template slot-scope="scope">
           {{ scope.$index }}
@@ -39,41 +39,65 @@
     </el-table>
     <el-divider />
     <p>策略L：</p>
-    <el-table :data="lresult" style="width: 100%">
-      <el-table-column prop="idxName" label="性能指标" width="180" />
-      <el-table-column prop="strategy" label="策略" width="180" />
-      <el-table-column prop="band" label="带宽" />
-      <el-table-column prop="recommend" label="推荐目标" />
-      <el-table-column prop="devTarget" label="开发车目标" />
-    </el-table>
-    <div id="lchart" style="width: 600px;height:400px;" />
+    <el-row>
+      <el-col :span="12">
+        <el-table border :data="lresult">
+          <el-table-column prop="idxName" label="性能指标" width="180" />
+          <el-table-column prop="strategy" label="策略" width="180" />
+          <el-table-column prop="band" label="带宽" />
+          <el-table-column prop="recommend" label="推荐目标" />
+          <el-table-column prop="devTarget" label="开发车目标" />
+        </el-table>
+      </el-col>
+      <el-col :span="12">
+        <div id="lchart" style="width: 600px;height:250px;" />
+      </el-col>
+    </el-row>
     <p>策略A：</p>
-    <el-table :data="aresult" style="width: 100%">
-      <el-table-column prop="idxName" label="性能指标" width="180" />
-      <el-table-column prop="strategy" label="策略" width="180" />
-      <el-table-column prop="band" label="带宽" />
-      <el-table-column prop="recommend" label="推荐目标" />
-      <el-table-column prop="devTarget" label="开发车目标" />
-    </el-table>
-    <div id="achart" style="width: 600px;height:400px;" />
+    <el-row>
+      <el-col :span="12">
+        <el-table border :data="aresult">
+          <el-table-column prop="idxName" label="性能指标" width="180" />
+          <el-table-column prop="strategy" label="策略" width="180" />
+          <el-table-column prop="band" label="带宽" />
+          <el-table-column prop="recommend" label="推荐目标" />
+          <el-table-column prop="devTarget" label="开发车目标" />
+        </el-table>
+      </el-col>
+      <el-col :span="12">
+        <div id="achart" style="width: 600px;height:250px;" />
+      </el-col>
+    </el-row>
     <p>策略C：</p>
-    <el-table :data="cresult" style="width: 100%">
-      <el-table-column prop="idxName" label="性能指标" width="180" />
-      <el-table-column prop="strategy" label="策略" width="180" />
-      <el-table-column prop="band" label="带宽" />
-      <el-table-column prop="recommend" label="推荐目标" />
-      <el-table-column prop="devTarget" label="开发车目标" />
-    </el-table>
-    <div id="cchart" style="width: 600px;height:400px;" />
+    <el-row>
+      <el-col :span="12">
+        <el-table border :data="cresult">
+          <el-table-column prop="idxName" label="性能指标" width="180" />
+          <el-table-column prop="strategy" label="策略" width="180" />
+          <el-table-column prop="band" label="带宽" />
+          <el-table-column prop="recommend" label="推荐目标" />
+          <el-table-column prop="devTarget" label="开发车目标" />
+        </el-table>
+      </el-col>
+      <el-col :span="12">
+        <div id="cchart" style="width: 600px;height:250px;" />
+      </el-col>
+    </el-row>
     <p>策略U：</p>
-    <el-table :data="uresult" style="width: 100%">
-      <el-table-column prop="idxName" label="性能指标" width="180" />
-      <el-table-column prop="strategy" label="策略" width="180" />
-      <el-table-column prop="band" label="带宽" />
-      <el-table-column prop="recommend" label="推荐目标" />
-      <el-table-column prop="devTarget" label="开发车目标" />
-    </el-table>
-    <div id="uchart" style="width: 600px;height:400px;" />
+    <el-row>
+      <el-col :span="12">
+        <el-table border :data="uresult">
+          <el-table-column prop="idxName" label="性能指标" width="180" />
+          <el-table-column prop="strategy" label="策略" width="180" />
+          <el-table-column prop="band" label="带宽" />
+          <el-table-column prop="recommend" label="推荐目标" />
+          <el-table-column prop="devTarget" label="开发车目标" />
+        </el-table>
+      </el-col>
+      <el-col :span="12">
+        <div id="uchart" style="width: 600px;height:250px;" />
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -299,13 +323,14 @@ export default {
       })
       // 指定图表的配置项和数据
       const option = {
-        color: ['#FFC000', '#3398DB'],
+        color: ['#3398DB'],
         title: {
           text: ''
         },
         tooltip: {},
         legend: {
-          data: ['性能值']
+          data: ['性能值'],
+          show: false
         },
         xAxis: {
           axisLabel: {
@@ -318,6 +343,7 @@ export default {
           {
             name: '性能值',
             type: 'bar',
+            barWidth: 40,
             label: {
               show: true,
               position: 'top'
@@ -326,8 +352,11 @@ export default {
               normal: {
                 // 定制显示（按顺序）
                 color: function(params) {
-                  const colorList = ['#C33531', '#EFE42A', '#64BD3D', '#EE9201', '#29AAE3', '#B74AE5', '#0AAF9F', '#E89589', '#16A085', '#4A235A', '#C39BD3 ', '#F9E79F', '#BA4A00', '#ECF0F1', '#616A6B', '#EAF2F8', '#4A235A', '#3498DB']
-                  return colorList[params.dataIndex]
+                  if (params.dataIndex === 0) {
+                    return '#FFC000'
+                  } else {
+                    return '#5B9BD5'
+                  }
                 }
               }
             },
@@ -337,6 +366,17 @@ export default {
       }
       // 使用刚指定的配置项和数据显示图表。
       myChart.setOption(option)
+    },
+    onExtremChange() {
+      // 极值类型切换，清除计算结果
+      // L策略结果
+      this.lresult = []
+      // A策略结果
+      this.aresult = []
+      // C策略结果
+      this.cresult = []
+      // U策略结果
+      this.uresult = []
     }
   }
 }
